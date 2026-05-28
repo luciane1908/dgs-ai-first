@@ -16,6 +16,13 @@ Meta: reduzir tempo de consulta de 12 min para < 2 min por chamado.
 | `context/` | Documentação oficial da NovaTech (fonte de verdade) |
 | `exercises/` | Definições dos exercícios (enunciados) |
 | `deliverables/dm/` | Entregáveis produzidos — papel Delivery Manager |
+| `deliverables/ps/` | Entregáveis produzidos — papel Product Specialist |
+
+## Papéis cobertos
+| Papel | Pasta | Fase atual |
+|-------|-------|------------|
+| Delivery Manager | `deliverables/dm/` | Fase 1 ✅ |
+| Product Specialist | `deliverables/ps/` | Fase 1 🔄 |
 
 ## Regras para entregáveis
 - Nunca repetir contexto que já existe em `context/` ou `exercises/`
