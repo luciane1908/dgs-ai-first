@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avaliador — Trilha AI First</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap');
+:root {
+  --bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a26;--border:#2a2a3e;
+  --accent:#7c6af7;--accent2:#4facde;--text:#e8e8f0;--text-muted:#7a7a9a;
+  --success:#4ade80;--warning:#fbbf24;--danger:#f87171;--radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(124,106,247,.03)1px,transparent 1px),linear-gradient(90deg,rgba(124,106,247,.03)1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+.wrap{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:36px 22px 80px;}
+
+/* Header */
+.badge{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);background:rgba(124,106,247,.1);border:1px solid rgba(124,106,247,.25);padding:4px 10px;border-radius:100px;margin-bottom:10px;letter-spacing:.05em;}
+.badge::before{content:'';width:6px;height:6px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+h1{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;line-height:1.15;letter-spacing:-.02em;margin-bottom:6px;}
+h1 span{color:var(--accent);}
+.subtitle{color:var(--text-muted);font-size:13px;line-height:1.6;margin-bottom:36px;}
+
+/* Step layout */
+.step{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;margin-bottom:14px;transition:border-color .2s;}
+.step:hover{border-color:rgba(124,106,247,.25);}
+.step-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.step-num{width:26px;height:26px;border-radius:50%;background:rgba(124,106,247,.18);color:var(--accent);font-family:'Syne',sans-serif;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.step-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);}
+.step-desc{font-size:12px;color:var(--text-muted);margin-left:36px;margin-top:-8px;margin-bottom:14px;line-height:1.6;}
+
+/* Form elements */
+label{font-size:12px;font-weight:600;color:var(--text-muted);letter-spacing:.03em;display:block;margin-bottom:5px;}
+label .required{color:var(--danger);margin-left:2px;}
+.field{margin-bottom:14px;}
+input[type=text],select,textarea{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;padding:9px 12px;outline:none;width:100%;transition:border-color .2s,box-shadow .2s;}
+input[type=text]:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,106,247,.1);}
+input[type=text]::placeholder,textarea::placeholder{color:var(--text-muted);}
+input.invalid,select.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0 0 0 3px rgba(248,113,113,.1)!important;}
+.field-err{font-size:11px;color:var(--danger);margin-top:4px;display:none;}
+.field-err.vis{display:block;}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a7a9a' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;cursor:pointer;}
+select option{background:var(--surface2);}
+textarea{resize:vertical;line-height:1.65;}
+
+/* Two-col */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+
+/* GitHub row */
+.gh-row{display:flex;gap:8px;flex-wrap:wrap;}
+.gh-row input{flex:1;min-width:160px;}
+.gh-row input.short{max-width:110px;}
+
+/* File checkboxes */
+.file-checks{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
+.file-chk{display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 12px;cursor:pointer;transition:all .2s;user-select:none;}
+.file-chk:hover{border-color:rgba(124,106,247,.4);}
+.file-chk input[type=checkbox]{display:none;}
+.chk-box{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
+.file-chk input:checked~.chk-box{background:var(--accent);border-color:var(--accent);}
+.file-chk input:checked~.chk-box::after{content:'✓';font-size:9px;color:#fff;font-weight:700;}
+.chk-name{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-muted);transition:color .2s;}
+.file-chk input:checked~.chk-name{color:var(--text);}
+.chk-status{font-size:10px;width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.s-idle{background:var(--border);}
+.s-spin{background:var(--accent);animation:pulse 1s infinite;}
+.s-ok{background:var(--success);}
+.s-err{background:var(--danger);}
+
+/* Multi-select exercises */
+.ex-checks{display:flex;flex-direction:column;gap:8px;margin-top:6px;}
+.ex-chk{display:flex;align-items:flex-start;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:12px 14px;cursor:pointer;transition:all .2s;user-select:none;}
+.ex-chk:hover{border-color:rgba(124,106,247,.4);}
+.ex-chk input[type=checkbox]{display:none;}
+.ex-chk input:checked~.ex-chk-box{background:var(--accent);border-color:var(--accent);}
+.ex-chk input:checked~.ex-chk-box::after{content:'✓';font-size:9px;color:#fff;font-weight:700;}
+.ex-chk-box{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;transition:all .2s;}
+.ex-chk-info{flex:1;}
+.ex-chk-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text-muted);transition:color .2s;}
+.ex-chk input:checked~.ex-chk-info .ex-chk-title{color:var(--text);}
+.ex-chk-sub{font-size:11px;color:var(--text-muted);margin-top:2px;line-height:1.4;}
+.ex-chk-tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:100px;background:rgba(124,106,247,.1);color:var(--accent);font-family:'JetBrains Mono',monospace;margin-top:4px;}
+
+/* Entregável tabs */
+.ex-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.ex-tab{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;transition:all .2s;}
+.ex-tab:hover{border-color:rgba(124,106,247,.4);color:var(--text);}
+.ex-tab.active{background:rgba(124,106,247,.15);border-color:rgba(124,106,247,.5);color:var(--accent);}
+.ex-tab.has-content::after{content:'●';margin-left:5px;font-size:8px;color:var(--success);}
+
+/* Token meter */
+.token-meter{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-top:8px;display:flex;gap:20px;flex-wrap:wrap;}
+.token-stat{display:flex;flex-direction:column;gap:2px;}
+.token-label{font-size:10px;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;font-weight:600;}
+.token-val{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500;color:var(--accent2);}
+.token-warn{color:var(--warning);}
+.token-bar-wrap{flex:1;min-width:120px;display:flex;align-items:center;gap:8px;}
+.token-bar-track{flex:1;height:4px;background:rgba(42,42,62,.8);border-radius:100px;overflow:hidden;}
+.token-bar-fill{height:100%;border-radius:100px;transition:width .4s ease,background .4s;}
+
+/* Buttons */
+.btn-primary{width:100%;padding:14px;background:var(--accent);border:none;border-radius:var(--radius);color:#fff;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;letter-spacing:.02em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .15s,box-shadow .15s,background .15s;}
+.btn-primary:hover:not(:disabled){background:#8f80ff;box-shadow:0 8px 28px rgba(124,106,247,.35);transform:translateY(-1px);}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed;}
+.btn-primary.copied{background:#16a34a;}
+.btn-secondary{padding:9px 16px;background:rgba(124,106,247,.12);border:1px solid rgba(124,106,247,.35);border-radius:8px;color:var(--accent);font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn-secondary:hover:not(:disabled){background:rgba(124,106,247,.24);}
+.btn-secondary:disabled{opacity:.4;cursor:not-allowed;}
+.btn-outline{padding:9px 16px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text-muted);font-family:'Inter',sans-serif;font-size:13px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;margin-top:6px;}
+.btn-outline:hover{border-color:var(--accent);color:var(--text);}
+
+/* Banners */
+.banner{display:none;padding:10px 14px;border-radius:8px;font-size:12px;line-height:1.5;margin-top:10px;font-family:'JetBrains Mono',monospace;}
+.banner.vis{display:block;}
+.banner.ok{background:rgba(74,222,128,.07);border:1px solid rgba(74,222,128,.3);color:var(--success);}
+.banner.err{background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.3);color:var(--danger);}
+.banner.info{background:rgba(79,172,222,.07);border:1px solid rgba(79,172,222,.25);color:var(--accent2);}
+
+/* Result section */
+.result-section{display:none;animation:fadeUp .4s ease;margin-top:16px;}
+.result-section.vis{display:block;}
+.score-header{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px 26px;margin-bottom:14px;display:flex;align-items:center;gap:20px;}
+.score-circle{width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:1.7rem;font-weight:800;flex-shrink:0;}
+.sc-dist{background:rgba(74,222,128,.12);border:2px solid var(--success);color:var(--success);}
+.sc-aprov{background:rgba(124,106,247,.12);border:2px solid var(--accent);color:var(--accent);}
+.sc-ress{background:rgba(251,191,36,.12);border:2px solid var(--warning);color:var(--warning);}
+.sc-rep{background:rgba(248,113,113,.12);border:2px solid var(--danger);color:var(--danger);}
+.score-info-title{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:4px;}
+.cls-badge{display:inline-block;font-size:12px;font-weight:500;padding:3px 10px;border-radius:100px;}
+.cls-dist{background:rgba(74,222,128,.15);color:var(--success);}
+.cls-aprov{background:rgba(124,106,247,.15);color:var(--accent);}
+.cls-ress{background:rgba(251,191,36,.15);color:var(--warning);}
+.cls-rep{background:rgba(248,113,113,.15);color:var(--danger);}
+.scores-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px;}
+.sc-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
+.sc-card-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;}
+.sc-val{font-family:'Syne',sans-serif;font-size:1.7rem;font-weight:800;line-height:1;margin-bottom:3px;}
+.sv1{color:var(--danger)}.sv2{color:var(--warning)}.sv3{color:var(--success)}
+.sc-card-name{font-size:10px;color:var(--text-muted);line-height:1.3;}
+.result-content{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px 26px;margin-bottom:14px;}
+.result-content h2{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin:20px 0 10px;padding-bottom:7px;border-bottom:1px solid var(--border);}
+.result-content h2:first-child{margin-top:0;}
+.result-content p{font-size:13px;line-height:1.7;color:#c8c8e0;margin-bottom:7px;}
+.result-content table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:7px;}
+.result-content th{text-align:left;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);padding:8px 11px;border-bottom:1px solid var(--border);background:var(--surface2);}
+.result-content td{padding:10px 11px;border-bottom:1px solid rgba(42,42,62,.6);color:#c8c8e0;vertical-align:top;line-height:1.5;}
+.result-content tr:last-child td{border-bottom:none;}
+.result-content ul{padding-left:18px;margin-bottom:7px;}
+.result-content li{font-size:13px;line-height:1.7;color:#c8c8e0;margin-bottom:3px;}
+.result-content strong{color:var(--text);font-weight:600;}
+.chip-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;}
+.chip{font-size:11px;padding:3px 10px;border-radius:100px;border:1px solid;}
+.chip-g{background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.3);color:var(--success);}
+.chip-r{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.3);color:var(--danger);}
+
+/* Multi-result tabs */
+.result-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+.result-tab{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;transition:all .2s;}
+.result-tab.active{background:rgba(124,106,247,.15);border-color:rgba(124,106,247,.5);color:var(--accent);}
+
+@media(max-width:600px){
+  h1{font-size:1.6rem;}
+  .grid2{grid-template-columns:1fr;}
+  .scores-grid{grid-template-columns:repeat(3,1fr);}
+  .score-header{flex-direction:column;align-items:flex-start;gap:14px;}
+  .gh-row{flex-direction:column;}
+  .gh-row input.short{max-width:100%;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <div class="badge">DGS · DB1 Global Software</div>
+  <h1>Avaliador <span>AI First</span></h1>
+  <p class="subtitle">Ferramenta de avaliação da Trilha de Certificação — Cenário 1 · Fase de Entendimento e Contexto<br>
+  <em style="font-size:11px;opacity:.7">Dica: siga os passos na ordem — cada um depende do anterior.</em></p>
+
+  <!-- STEP 1: GitHub -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">1</div>
+      <div class="step-title">Buscar os trabalhos entregues no GitHub</div>
+    </div>
+    <p class="step-desc">Cole o endereço do repositório onde os trabalhos foram enviados. O sistema vai buscar os arquivos automaticamente — sem precisar copiar nada manualmente.</p>
+
+    <div class="gh-row">
+      <input type="text" id="ghUrl" placeholder="https://github.com/usuario/repositorio" />
+      <input type="text" id="ghBranch" class="short" placeholder="branch: main" />
+      <input type="text" id="ghPath" style="max-width:200px" placeholder="pasta: deliverables/ps" />
+      <button class="btn-secondary" id="btnLoad" onclick="loadGH()">↓ Buscar arquivos</button>
+    </div>
+    <div id="ghUrlErr" class="field-err">⚠ Informe o endereço completo do repositório (ex: https://github.com/usuario/repo)</div>
+
+    <p style="font-size:11px;color:var(--text-muted);margin-top:10px;line-height:1.6;">
+      Arquivos que serão buscados: <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent2)">ex-1.1-context-engineering.md · ex-1.2-jornada-atendente.md · ex-1.3-requisitos-rag.md · evidencia-uso-claude-code.md</span>
+    </p>
+
+    <!-- File checkboxes with status -->
+    <div class="file-checks" id="fileChecks" style="display:none;margin-top:14px;">
+      <p style="font-size:12px;color:var(--text-muted);width:100%;margin-bottom:4px;">Selecione quais trabalhos deseja avaliar:</p>
+      <label class="file-chk" id="chk-ex11">
+        <input type="checkbox" value="ex11" onchange="onFileCheckChange()" checked>
+        <div class="chk-box"></div>
+        <span class="chk-name">Exercício 1.1</span>
+        <span class="chk-status s-idle" id="st-ex11"></span>
+      </label>
+      <label class="file-chk" id="chk-ex12">
+        <input type="checkbox" value="ex12" onchange="onFileCheckChange()" checked>
+        <div class="chk-box"></div>
+        <span class="chk-name">Exercício 1.2</span>
+        <span class="chk-status s-idle" id="st-ex12"></span>
+      </label>
+      <label class="file-chk" id="chk-ex13">
+        <input type="checkbox" value="ex13" onchange="onFileCheckChange()" checked>
+        <div class="chk-box"></div>
+        <span class="chk-name">Exercício 1.3</span>
+        <span class="chk-status s-idle" id="st-ex13"></span>
+      </label>
+      <label class="file-chk" id="chk-ev">
+        <input type="checkbox" value="ev" onchange="onFileCheckChange()" checked>
+        <div class="chk-box"></div>
+        <span class="chk-name">Evidência de uso da IA</span>
+        <span class="chk-status s-idle" id="st-ev"></span>
+      </label>
+    </div>
+
+    <div class="banner" id="ghBanner"></div>
+  </div>
+
+  <!-- STEP 2: Exercises to evaluate -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">2</div>
+      <div class="step-title">Escolha quais exercícios avaliar</div>
+    </div>
+    <p class="step-desc">Você pode avaliar um ou mais exercícios de uma só vez. Marque os que deseja incluir na avaliação.</p>
+
+    <div class="ex-checks">
+      <label class="ex-chk">
+        <input type="checkbox" id="ex-sel-11" value="11" onchange="onExSelChange()">
+        <div class="ex-chk-box"></div>
+        <div class="ex-chk-info">
+          <div class="ex-chk-title">Exercício 1.1 — Estratégia de análise de documentos com IA</div>
+          <div class="ex-chk-sub">O participante precisa mostrar que sabe como fornecer informações à IA de forma progressiva, em vez de jogar tudo de uma vez. Conceito: <em>Context Engineering / Progressive Disclosure</em>.</div>
+          <span class="ex-chk-tag">Engenharia de Contexto · Engenharia de Prompt</span>
+        </div>
+      </label>
+      <label class="ex-chk">
+        <input type="checkbox" id="ex-sel-12" value="12" onchange="onExSelChange()">
+        <div class="ex-chk-box"></div>
+        <div class="ex-chk-info">
+          <div class="ex-chk-title">Exercício 1.2 — Mapa da jornada do usuário com IA no caminho</div>
+          <div class="ex-chk-sub">O participante precisa desenhar o fluxo completo de uma conversa com o assistente de IA: caminho ideal, alternativas quando a IA não sabe responder, e como corrigir erros. Conceito: <em>User Journey com Fallback e Feedback Loop</em>.</div>
+          <span class="ex-chk-tag">Fundamentos de IA · RAG</span>
+        </div>
+      </label>
+      <label class="ex-chk">
+        <input type="checkbox" id="ex-sel-13" value="13" onchange="onExSelChange()">
+        <div class="ex-chk-box"></div>
+        <div class="ex-chk-info">
+          <div class="ex-chk-title">Exercício 1.3 — Lista de requisitos para o sistema de busca inteligente</div>
+          <div class="ex-chk-sub">O participante precisa descrever como o assistente deve buscar informações em documentos, lidar com contradições e ser atualizado. Conceito: <em>RAG — Retrieval-Augmented Generation</em>.</div>
+          <span class="ex-chk-tag">RAG · Engenharia de Prompt · Iteração</span>
+        </div>
+      </label>
+    </div>
+    <div id="exSelErr" class="field-err" style="margin-top:8px;">⚠ Selecione pelo menos um exercício para continuar.</div>
+    <div class="banner" id="exBanner" style="margin-top:8px;"></div>
+  </div>
+
+  <!-- STEP 3: Entregável preview -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">3</div>
+      <div class="step-title">Conferir o conteúdo que será avaliado</div>
+    </div>
+    <p class="step-desc">Aqui aparece o texto dos trabalhos que serão enviados para avaliação. Se carregou do GitHub, ele já estará preenchido. Você também pode editar ou colar manualmente.</p>
+
+    <div class="ex-tabs" id="contentTabs"></div>
+
+    <textarea id="taContent" rows="10" placeholder="O conteúdo aparece aqui após selecionar os exercícios no passo 2 e carregar do GitHub no passo 1 — ou cole diretamente." oninput="updateTokens()"></textarea>
+    <div id="taErr" class="field-err">⚠ O campo de conteúdo está vazio. Carregue do GitHub ou cole o trabalho do participante.</div>
+
+    <!-- Token meter -->
+    <div class="token-meter" id="tokenMeter">
+      <div class="token-stat">
+        <span class="token-label">Palavras</span>
+        <span class="token-val" id="wordCount">0</span>
+      </div>
+      <div class="token-stat">
+        <span class="token-label">Caracteres</span>
+        <span class="token-val" id="charCount">0</span>
+      </div>
+      <div class="token-stat">
+        <span class="token-label">Tokens estimados</span>
+        <span class="token-val" id="tokenCount">0</span>
+      </div>
+      <div class="token-bar-wrap">
+        <span style="font-size:10px;color:var(--text-muted);white-space:nowrap">do limite</span>
+        <div class="token-bar-track">
+          <div class="token-bar-fill" id="tokenBar" style="width:0%;background:var(--success)"></div>
+        </div>
+        <span class="token-val" id="tokenPct" style="font-size:11px">0%</span>
+      </div>
+    </div>
+    <p style="font-size:10px;color:var(--text-muted);margin-top:5px;line-height:1.5;">
+      💡 <em>Token</em> é a unidade que a IA usa para medir texto — cada ~4 caracteres = 1 token. O limite do modelo é ~150.000 tokens. Ficar abaixo de 80% garante espaço para a resposta da avaliação.
+    </p>
+  </div>
+
+  <!-- STEP 4: Copy prompt -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">4</div>
+      <div class="step-title">Gerar e copiar o pedido de avaliação</div>
+    </div>
+    <p class="step-desc">Clique no botão abaixo para gerar o texto completo que você vai colar no Claude. Ele já inclui as instruções de avaliação, os critérios e o trabalho do participante — tudo junto.</p>
+
+    <div class="field grid2">
+      <div>
+        <label>Papel do participante na trilha <span class="required">*</span></label>
+        <select id="papel">
+          <option value="Product Specialist">Product Specialist — Produto &amp; Requisitos</option>
+          <option value="Delivery Manager">Delivery Manager — Gestão de Entrega</option>
+          <option value="Desenvolvedor">Desenvolvedor — Código &amp; Implementação</option>
+          <option value="Tech Lead">Tech Lead — Arquitetura &amp; Liderança Técnica</option>
+          <option value="QA">QA — Qualidade &amp; Testes</option>
+        </select>
+        <div id="papelErr" class="field-err">⚠ Selecione o papel do participante.</div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btnCopy" onclick="copyPrompt()">
+      <span>📋</span> Gerar e copiar pedido de avaliação para o Claude
+    </button>
+    <p style="font-size:11px;color:var(--text-muted);margin-top:8px;line-height:1.5;">
+      Após clicar, o texto é copiado automaticamente. Abra uma nova conversa no Claude, cole (Ctrl+V / Cmd+V) e envie.
+    </p>
+  </div>
+
+  <!-- STEP 5: Paste result -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">5</div>
+      <div class="step-title">Colar a resposta do Claude aqui</div>
+    </div>
+    <p class="step-desc">Quando o Claude terminar a avaliação, ele vai responder com um texto em formato JSON (parece um dicionário com chaves e valores). Copie esse texto completo e cole abaixo — o sistema transforma em um relatório visual.</p>
+
+    <label>Resposta do Claude <span class="required">*</span>
+      <span style="font-size:10px;font-weight:400;margin-left:6px;color:var(--text-muted)">— cole o JSON que o Claude gerou</span>
+    </label>
+    <textarea id="jsonInput" rows="6" placeholder='Cole aqui a resposta completa do Claude. Ela começa com { e termina com }
+Exemplo do início: {"resumo": "O participante demonstrou...", "scores": {...}}'
+      oninput="updateJsonTokens()"></textarea>
+    <div id="jsonErr" class="field-err">⚠ Cole a resposta do Claude antes de continuar. Certifique-se de copiar o texto completo, do { inicial até o } final.</div>
+
+    <!-- token meter for json -->
+    <div class="token-meter" id="jsonTokenMeter" style="margin-top:8px;">
+      <div class="token-stat">
+        <span class="token-label">Caracteres colados</span>
+        <span class="token-val" id="jsonCharCount">0</span>
+      </div>
+      <div class="token-stat">
+        <span class="token-label">Tokens estimados</span>
+        <span class="token-val" id="jsonTokenCount">0</span>
+      </div>
+      <div class="token-stat" id="jsonValid" style="display:none">
+        <span class="token-label">JSON</span>
+        <span class="token-val" id="jsonValidLabel" style="color:var(--success)">✓ válido</span>
+      </div>
+    </div>
+
+    <button class="btn-primary" style="margin-top:12px;background:var(--accent2);max-width:320px;" onclick="parseAndRender()">
+      <span>⚡</span> Mostrar relatório de avaliação
+    </button>
+    <div class="banner" id="parseErr" style="margin-top:10px;"></div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result-section" id="resultSec">
+    <div class="result-tabs" id="resultTabs"></div>
+    <div id="resultBody"></div>
+    <button class="btn-outline" onclick="resetAll()">↩ Começar nova avaliação</button>
+  </div>
+
+</div>
+
+<script>
+// ── Skills ───────────────────────────────────────────────────────────────────
+const FOUNDATION=`# Foundation — Critérios de avaliação comuns a todos os papéis
+
+## As 5 dimensões (nota de 1 a 3 cada)
+
+D1 — O participante entendeu os conceitos?
+  Nota 1: conceitos errados, ausentes ou superficiais
+  Nota 2: conceitos corretos, mas genéricos — não aplicados ao projeto NovaTech
+  Nota 3: conceitos corretos, específicos ao NovaTech, com detalhes relevantes (ex: identifica que PROC-042 vs v2 gera risco de mistura de multiplicadores)
+
+D2 — Usou bem as ferramentas de IA?
+  Nota 1: não usou, ou usou com prompt genérico único sem iterar
+  Nota 2: usou com evidência, alguma iteração, mas refinamento superficial
+  Nota 3: prompts específicos, iteração clara, output refinado com análise crítica — ciclo gerar→avaliar→iterar visível
+
+D3 — O trabalho entregue é bom?
+  Nota 1: incompleto, com erros, ou inutilizável
+  Nota 2: completo e correto, mas genérico — funcionaria para qualquer projeto
+  Nota 3: completo, correto, específico ao NovaTech, acionável — outro membro do time usaria sem pedir esclarecimentos
+
+D4 — O participante pensou por conta própria?
+  Nota 1: aceitou tudo que a IA disse sem questionar
+  Nota 2: questionou um pouco, mas só os problemas óbvios
+  Nota 3: análise profunda, identificou erros não-óbvios, demonstrou julgamento próprio
+
+D5 — O trabalho faz sentido no contexto do projeto?
+  Nota 1: desconectado do projeto — parece ser sobre qualquer sistema
+  Nota 2: conectado, mas com lacunas — ex: ignora que a NovaTech já tem Azure
+  Nota 3: profundamente conectado, referencia dados específicos (320 chamados/dia, tiers, multiplicadores, prazos)
+
+## Pontuação e resultado
+Média das 5 dimensões (1.0 a 3.0):
+  2.5–3.0 → Aprovado com distinção
+  2.0–2.4 → Aprovado
+  1.5–1.9 → Aprovado com ressalvas — precisa reforçar os tópicos deficientes
+  <1.5    → Não aprovado — precisa refazer após estudar os tópicos indicados
+
+## Penalidades automáticas
+- Exercício "humano primeiro" sem análise própria, ou análise idêntica à da IA → D4 recebe nota ≤ 1
+- Armadilha intencional do exercício não identificada → D4 recebe nota ≤ 1
+- Iteração pedida, mas versão 1 ≈ versão 2 (mudanças apenas cosméticas) → D2 recebe nota ≤ 1
+- Evidência de uso de ferramenta ausente quando era obrigatória → D2 recebe nota ≤ 2`;
+
+const PS_SKILL=`# Critérios específicos — Product Specialist (Cenário 1)
+
+Perfil esperado: opera na camada de produto — discovery, requisitos, jornadas, guardrails. Traduz conceitos técnicos em decisões de produto testáveis.
+
+## Exercício 1.1 — Estratégia de análise de documentos com IA
+(Este é o exercício mais importante de Context Engineering — avaliar com máximo rigor em D1)
+
+Para nota 3 em cada critério:
+- Estratégia em 3 etapas COERENTE: Etapa 1 (metadados/overview) → Etapa 2 (deep dive nos documentos contraditórios) → Etapa 3 (cruzamento com FAQ). Cada etapa deve ser justificada.
+- Escolha da Etapa 2 justificada: deve ter selecionado PROC-042 vs v2 especificamente porque são contraditórios — não qualquer documento.
+- Reflexão sobre progressive disclosure: compara resultado progressivo vs "tudo de uma vez". Deve identificar que contexto em excesso degrada a qualidade da resposta.
+- Riscos identificados com especificidade: PROC-042 (contradição de multiplicadores) + FAQ sem validação formal — não riscos genéricos.
+- Prompts específicos: constraints claros, formato de output definido, contexto calibrado por etapa.
+
+Sinais de nota ≤ 1 (red flags):
+- Forneceu os 5 documentos completos de uma vez no primeiro prompt (demonstra o OPOSTO do objetivo)
+- Escolheu documentos aleatórios sem justificativa
+- Reflexão ausente ou superficial ("entreguei de forma progressiva")
+- Riscos genéricos como "a IA pode errar"
+- Prompt único: "Analise estes documentos"
+
+⚠ ARMADILHA INTENCIONAL: Se o participante forneceu 5 documentos completos no 1º prompt → D1 recebe nota ≤ 1 automaticamente.
+
+## Exercício 1.2 — Mapa da jornada do usuário com IA no caminho
+Tópicos: Fundamentos de IA (limitações que afetam jornada), RAG (feedback loop)
+
+Para nota 3:
+- 3 fluxos COMPLETOS: principal (caminho ideal) + fallback (IA não sabe) + feedback (correção de erro). Todos com detalhes.
+- Guardrails específicos ao domínio logístico: ex: "nunca informar prazo de devolução para carga perigosa" — não "não errar".
+- Feedback loop completo e rastreável: atendente reporta erro → equipe investiga → correção chega ao assistente (não apenas um botão de "reportar").
+- Diagrama visual (via Claude Design): coerente com o texto, 3 caminhos visíveis, legível para quem não é técnico.
+
+Sinais de nota ≤ 1: apenas caminho feliz; guardrail "não cometer erros"; botão de feedback sem processo por trás; diagrama genérico ou ausente.
+
+## Exercício 1.3 — Lista de requisitos para o sistema de busca inteligente (RAG)
+Tópicos: RAG (pipeline e implicações para produto), Engenharia de Prompt (iteração v1→v2)
+
+Para nota 3:
+- 5 ÁREAS cobertas: (1) Fontes de dados, (2) Como lidar com contradições, (3) O que fazer quando não há resposta, (4) Como manter atualizado, (5) Rastreabilidade das respostas.
+- Requisitos TESTÁVEIS: para cada requisito, um QA conseguiria escrever um teste automatizado.
+- Tratamento de contradições MADURO: solução concreta como versionamento, prioridade por data mais recente, ou apresentar ambas com aviso — não "delegar ao LLM decidir".
+- Iteração REAL verificável: V1 com lacunas identificadas (pelo próprio Claude ou pelo participante) → V2 com melhorias concretas e verificáveis. V1 ≈ V2 = penalidade.`;
+
+// ── File map ─────────────────────────────────────────────────────────────────
+const FILES={
+  ex11:{fn:'ex-1.1-context-engineering.md',label:'Exercício 1.1',exKey:'11'},
+  ex12:{fn:'ex-1.2-jornada-atendente.md',label:'Exercício 1.2',exKey:'12'},
+  ex13:{fn:'ex-1.3-requisitos-rag.md',label:'Exercício 1.3',exKey:'13'},
+  ev:  {fn:'evidencia-uso-claude-code.md',label:'Evidência de IA',exKey:null}
+};
+const ghData={ex11:null,ex12:null,ex13:null,ev:null};
+const tabContent={};  // key -> text in textarea per tab
+let activeTab=null;
+let resultData={};    // exKey -> parsed result
+
+// ── GitHub loader ─────────────────────────────────────────────────────────────
+function parseRepo(u){
+  const c=u.trim().replace(/\/$/,'');
+  const m=c.match(/(?:github\.com\/)?([^/\s]+)\/([^/\s]+)/);
+  return m?{owner:m[1],repo:m[2]}:null;
+}
+async function ghFetch(owner,repo,branch,path){
+  const r=await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`,{headers:{Accept:'application/vnd.github.v3+json'}});
+  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.message||`HTTP ${r.status}`);}
+  const d=await r.json();
+  return atob(d.content.replace(/\n/g,''));
+}
+function setFileSt(key,cls){
+  const el=document.getElementById('st-'+key);
+  if(el) el.className='chk-status '+cls;
+}
+async function loadGH(){
+  const url=document.getElementById('ghUrl').value.trim()||'https://github.com/luciane1908/dgs-ai-first';
+  const branch=document.getElementById('ghBranch').value.trim()||'main';
+  const base=(document.getElementById('ghPath').value.trim()||'deliverables/ps').replace(/^\/|\/$/g,'');
+  if(!url){
+    document.getElementById('ghUrlErr').classList.add('vis');
+    document.getElementById('ghUrl').classList.add('invalid');
+    return;
+  }
+  document.getElementById('ghUrlErr').classList.remove('vis');
+  document.getElementById('ghUrl').classList.remove('invalid');
+  const parsed=parseRepo(url);
+  if(!parsed){
+    setBanner('ghBanner','⚠ Endereço inválido. Use o formato: https://github.com/usuario/repositorio','err');
+    return;
+  }
+  const{owner,repo}=parsed;
+  document.getElementById('fileChecks').style.display='flex';
+  document.getElementById('btnLoad').disabled=true;
+  hideBanner('ghBanner');
+  let ok=0;
+  for(const[k,info] of Object.entries(FILES)){
+    setFileSt(k,'s-spin');
+    try{
+      ghData[k]=await ghFetch(owner,repo,branch,`${base}/${info.fn}`);
+      setFileSt(k,'s-ok');
+      ok++;
+    }catch(e){
+      ghData[k]=null;
+      setFileSt(k,'s-err');
+    }
+  }
+  document.getElementById('btnLoad').disabled=false;
+  if(ok===0){
+    setBanner('ghBanner',`⚠ Nenhum arquivo encontrado. Verifique se o repositório é público e se a pasta está correta (${owner}/${repo} · ${branch} · ${base})`,'err');
+  } else {
+    setBanner('ghBanner',`✓ ${ok} de ${Object.keys(FILES).length} arquivos carregados de ${owner}/${repo}`,'ok');
+    syncContentTabs();
+  }
+}
+function onFileCheckChange(){syncContentTabs();}
+
+// ── Exercise selection ────────────────────────────────────────────────────────
+function onExSelChange(){syncContentTabs();}
+
+function getSelectedExercises(){
+  return ['11','12','13'].filter(v=>document.getElementById('ex-sel-'+v)?.checked);
+}
+
+// ── Content tabs ──────────────────────────────────────────────────────────────
+function syncContentTabs(){
+  const selEx=getSelectedExercises();
+  const tabsEl=document.getElementById('contentTabs');
+  tabsEl.innerHTML='';
+
+  // Build list of tabs: selected exercises that also have file selected
+  const tabs=[];
+  for(const ex of selEx){
+    const fileKey='ex'+ex.replace('.','');  // '11'->'ex11'
+    const checked=document.querySelector(`#chk-${fileKey} input`)?.checked!==false;
+    const label=FILES[fileKey]?.label||('Exercício '+ex);
+    tabs.push({ex,fileKey,label,hasData:!!ghData[fileKey]});
+  }
+
+  if(tabs.length===0){
+    document.getElementById('taContent').value='';
+    updateTokens();
+    return;
+  }
+
+  // Create tab buttons
+  tabs.forEach((t,i)=>{
+    const btn=document.createElement('button');
+    btn.className='ex-tab'+(tabContent[t.fileKey]?' has-content':'');
+    btn.textContent=t.label;
+    btn.dataset.key=t.fileKey;
+    btn.onclick=()=>switchTab(t.fileKey,tabs);
+    tabsEl.appendChild(btn);
+    if(t.hasData&&!tabContent[t.fileKey]){
+      // build content for this tab: file + evidence appended
+      let c=ghData[t.fileKey]||'';
+      if(ghData.ev&&document.querySelector('#chk-ev input')?.checked!==false){
+        c+='\n\n---\n\n## Evidência de uso da ferramenta de IA\n\n'+ghData.ev;
+      }
+      tabContent[t.fileKey]=c;
+      btn.classList.add('has-content');
+    }
+  });
+
+  // Activate first or keep current
+  if(!activeTab||!tabs.find(t=>t.fileKey===activeTab)){
+    switchTab(tabs[0].fileKey,tabs);
+  } else {
+    switchTab(activeTab,tabs);
+  }
+}
+
+function switchTab(key,tabs){
+  activeTab=key;
+  // Save current textarea to current tab
+  document.querySelectorAll('.ex-tab').forEach(btn=>{
+    if(btn.dataset.key===key) btn.classList.add('active');
+    else btn.classList.remove('active');
+  });
+  const content=tabContent[key]||'';
+  document.getElementById('taContent').value=content;
+  updateTokens();
+}
+
+// On manual edit, save to current tab
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('taContent').addEventListener('input',()=>{
+    if(activeTab) tabContent[activeTab]=document.getElementById('taContent').value;
+    updateTokens();
+  });
+  // pre-fill repo url
+  document.getElementById('ghUrl').value='https://github.com/luciane1908/dgs-ai-first';
+  document.getElementById('ghPath').value='deliverables/ps';
+});
+
+// ── Token counters ────────────────────────────────────────────────────────────
+function estimateTokens(text){return Math.ceil(text.length/4);}
+function updateTokens(){
+  // aggregate all selected tab contents
+  const selEx=getSelectedExercises();
+  let combined='';
+  selEx.forEach(ex=>{
+    const k='ex'+ex;
+    combined+=(tabContent[k]||'');
+  });
+  const words=combined.trim()===''?0:combined.trim().split(/\s+/).length;
+  const chars=combined.length;
+  const tokens=estimateTokens(combined);
+  const MAX_TOKENS=150000;
+  const pct=Math.min(Math.round(tokens/MAX_TOKENS*100),100);
+  document.getElementById('wordCount').textContent=words.toLocaleString('pt-BR');
+  document.getElementById('charCount').textContent=chars.toLocaleString('pt-BR');
+  document.getElementById('tokenCount').textContent=tokens.toLocaleString('pt-BR');
+  document.getElementById('tokenPct').textContent=pct+'%';
+  const fill=document.getElementById('tokenBar');
+  fill.style.width=pct+'%';
+  if(pct>90){fill.style.background='var(--danger)';document.getElementById('tokenPct').className='token-val token-warn';}
+  else if(pct>70){fill.style.background='var(--warning)';document.getElementById('tokenPct').className='token-val token-warn';}
+  else{fill.style.background='var(--success)';document.getElementById('tokenPct').className='token-val';}
+}
+function updateJsonTokens(){
+  const text=document.getElementById('jsonInput').value;
+  const chars=text.length;
+  const tokens=estimateTokens(text);
+  document.getElementById('jsonCharCount').textContent=chars.toLocaleString('pt-BR');
+  document.getElementById('jsonTokenCount').textContent=tokens.toLocaleString('pt-BR');
+  // try parse
+  const validEl=document.getElementById('jsonValid');
+  const validLbl=document.getElementById('jsonValidLabel');
+  if(text.trim().startsWith('{')){
+    try{JSON.parse(text.trim().replace(/^```json|```$/gm,'').trim());validEl.style.display='flex';validLbl.textContent='✓ válido';validLbl.style.color='var(--success)';}
+    catch(e){validEl.style.display='flex';validLbl.textContent='⚠ incompleto';validLbl.style.color='var(--warning)';}
+  } else {validEl.style.display='none';}
+}
+
+// ── Validation ────────────────────────────────────────────────────────────────
+function validate(){
+  let ok=true;
+  // exercises
+  if(getSelectedExercises().length===0){
+    document.getElementById('exSelErr').classList.add('vis');
+    ok=false;
+  } else document.getElementById('exSelErr').classList.remove('vis');
+  // content
+  const combined=buildCombinedContent();
+  if(!combined||combined.trim().length<50){
+    document.getElementById('taErr').classList.add('vis');
+    document.getElementById('taContent').classList.add('invalid');
+    ok=false;
+  } else {
+    document.getElementById('taErr').classList.remove('vis');
+    document.getElementById('taContent').classList.remove('invalid');
+  }
+  // papel (always has value, just check it's set)
+  return ok;
+}
+
+// ── Build prompt ──────────────────────────────────────────────────────────────
+function buildCombinedContent(){
+  const selEx=getSelectedExercises();
+  if(selEx.length===0) return '';
+  // If single tab open, use textarea directly
+  if(selEx.length===1){
+    const k='ex'+selEx[0];
+    return document.getElementById('taContent').value.trim();
+  }
+  // Multiple: combine all tab contents
+  let parts=[];
+  selEx.forEach(ex=>{
+    const k='ex'+ex;
+    const c=(tabContent[k]||'').trim();
+    if(c) parts.push(`\n\n=== ${FILES[k]?.label||('Exercício '+ex)} ===\n\n${c}`);
+  });
+  return parts.join('\n');
+}
+
+function buildPrompt(){
+  const papel=document.getElementById('papel').value;
+  const selEx=getSelectedExercises();
+  const exNames={'11':'1.1 — Estratégia de análise de documentos com IA','12':'1.2 — Mapa da jornada do usuário com IA','13':'1.3 — Lista de requisitos para o sistema de busca inteligente'};
+  const exercicios=selEx.map(e=>exNames[e]||e).join('; ');
+  const content=buildCombinedContent();
+  const isMulti=selEx.length>1;
+
+  const jsonSchema=isMulti
+    ? `{
+  "avaliacoes": [
+    {
+      "exercicio": "1.X",
+      "resumo": "2-3 frases",
+      "scores": {
+        "d1":{"valor":1,"justificativa":"texto concreto"},
+        "d2":{"valor":1,"justificativa":"texto concreto"},
+        "d3":{"valor":1,"justificativa":"texto concreto"},
+        "d4":{"valor":1,"justificativa":"texto concreto"},
+        "d5":{"valor":1,"justificativa":"texto concreto"}
+      },
+      "media":0.0,
+      "classificacao":"Aprovado com distinção|Aprovado|Aprovado com ressalvas|Não aprovado",
+      "armadilhas":[{"nome":"string","identificada":true,"observacao":"string"}],
+      "pontosFort":["string","string"],
+      "pontosMelh":["string com ação concreta","string com ação concreta"],
+      "topicosReforco":["string"]
+    }
+  ]
+}`
+    : `{
+  "exercicio":"1.X",
+  "resumo":"2-3 frases",
+  "scores":{
+    "d1":{"valor":1,"justificativa":"texto concreto"},
+    "d2":{"valor":1,"justificativa":"texto concreto"},
+    "d3":{"valor":1,"justificativa":"texto concreto"},
+    "d4":{"valor":1,"justificativa":"texto concreto"},
+    "d5":{"valor":1,"justificativa":"texto concreto"}
+  },
+  "media":0.0,
+  "classificacao":"Aprovado com distinção|Aprovado|Aprovado com ressalvas|Não aprovado",
+  "armadilhas":[{"nome":"string","identificada":true,"observacao":"string"}],
+  "pontosFort":["string","string"],
+  "pontosMelh":["string com ação concreta","string com ação concreta"],
+  "topicosReforco":["string"]
+}`;
+
+  return `Você é avaliador sênior da Trilha de Certificação AI First da DGS (DB1 Global Software).
+Avalie o(s) entregável(eis) abaixo usando os critérios fornecidos.
+
+PAPEL DO PARTICIPANTE: ${papel}
+CENÁRIO: 1 — Entendimento e Contexto
+EXERCÍCIO(S) A AVALIAR: ${exercicios}
+
+=== CRITÉRIOS COMUNS A TODOS OS PAPÉIS ===
+${FOUNDATION}
+
+=== CRITÉRIOS ESPECÍFICOS DO PAPEL ===
+${PS_SKILL}
+
+INSTRUÇÕES DE AVALIAÇÃO:
+1. Para cada dimensão D1 a D5, atribua nota 1, 2 ou 3 com justificativa concreta baseada no texto do entregável.
+2. Verifique TODAS as armadilhas intencionais listadas nos critérios. Liste cada uma com identificada: true ou false.
+3. Aplique as penalidades automáticas quando aplicável.
+4. Se houver seção "Evidência de uso da ferramenta de IA", use-a para avaliar D2.
+5. A média deve ser calculada corretamente: soma dos 5 scores dividida por 5.
+${isMulti?'6. Avalie cada exercício separadamente no array "avaliacoes".':''}
+
+RETORNE APENAS JSON VÁLIDO (sem markdown, sem texto antes ou depois, sem explicações fora do JSON):
+${jsonSchema}
+
+=== TRABALHO DO PARTICIPANTE PARA AVALIAÇÃO ===
+${content}`;
+}
+
+async function copyPrompt(){
+  if(!validate()) return;
+  const p=buildPrompt();
+  try{
+    await navigator.clipboard.writeText(p);
+    const btn=document.getElementById('btnCopy');
+    btn.classList.add('copied');
+    btn.innerHTML='<span>✓</span> Copiado! Abra o Claude e cole com Ctrl+V (ou Cmd+V no Mac)';
+    setTimeout(()=>{btn.classList.remove('copied');btn.innerHTML='<span>📋</span> Gerar e copiar pedido de avaliação para o Claude';},3000);
+  }catch(e){
+    // fallback
+    setBanner('parseErr','Não foi possível copiar automaticamente. Selecione o texto na área de resposta do Claude e copie manualmente.','err');
+  }
+}
+
+// ── Parse & render ────────────────────────────────────────────────────────────
+function parseAndRender(){
+  const raw=document.getElementById('jsonInput').value.trim();
+  if(!raw||raw.length<10){
+    document.getElementById('jsonErr').classList.add('vis');
+    document.getElementById('jsonInput').classList.add('invalid');
+    return;
+  }
+  document.getElementById('jsonErr').classList.remove('vis');
+  document.getElementById('jsonInput').classList.remove('invalid');
+
+  let result;
+  try{
+    const clean=raw.replace(/^```json\n?|^```\n?|```$/gm,'').trim();
+    result=JSON.parse(clean);
+  }catch(err){
+    setBanner('parseErr','⚠ Não consegui ler o JSON. Certifique-se de copiar a resposta COMPLETA do Claude, do { inicial até o } final. Erro: '+err.message,'err');
+    return;
+  }
+  hideBanner('parseErr');
+
+  // Normalize: single or array
+  const list=result.avaliacoes||[result];
+  resultData={};
+  list.forEach(r=>{resultData[r.exercicio||'?']=r;});
+
+  renderAllResults(list);
+}
+
+function renderAllResults(list){
+  const sec=document.getElementById('resultSec');
+  const tabsEl=document.getElementById('resultTabs');
+  const body=document.getElementById('resultBody');
+  tabsEl.innerHTML='';
+  body.innerHTML='';
+
+  if(list.length===1){
+    body.innerHTML=buildResultHTML(list[0]);
+  } else {
+    list.forEach((r,i)=>{
+      const key=r.exercicio||('ex'+i);
+      const btn=document.createElement('button');
+      btn.className='result-tab'+(i===0?' active':'');
+      btn.textContent='Exercício '+key;
+      btn.onclick=()=>{
+        document.querySelectorAll('.result-tab').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        body.innerHTML=buildResultHTML(r);
+      };
+      tabsEl.appendChild(btn);
+    });
+    body.innerHTML=buildResultHTML(list[0]);
+  }
+
+  sec.classList.add('vis');
+  sec.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function ck(cls){
+  if(!cls)return'rep';
+  if(cls.includes('distinção')||cls.includes('distincao'))return'dist';
+  if(cls.includes('ressalvas'))return'ress';
+  if(cls.includes('Não')||cls.includes('Nao'))return'rep';
+  return'aprov';
+}
+function sv(v){return v===3?'sv3':v===2?'sv2':'sv1';}
+const CKC={dist:'sc-dist',aprov:'sc-aprov',ress:'sc-ress',rep:'sc-rep'};
+const CKB={dist:'cls-dist',aprov:'cls-aprov',ress:'cls-ress',rep:'cls-rep'};
+const DIMS=[
+  ['d1','D1','O participante entendeu os conceitos?'],
+  ['d2','D2','Usou bem as ferramentas de IA?'],
+  ['d3','D3','O trabalho entregue é bom?'],
+  ['d4','D4','Pensou por conta própria?'],
+  ['d5','D5','Faz sentido no projeto?']
+];
+
+function buildResultHTML(r){
+  const c=ck(r.classificacao);
+  let h='';
+
+  // Score header
+  h+=`<div class="score-header">
+    <div class="score-circle ${CKC[c]}">${(r.media||0).toFixed(1)}</div>
+    <div>
+      <div class="score-info-title">${e(r.classificacao||'—')}</div>
+      <span class="cls-badge ${CKB[c]}">${e(r.classificacao||'—')}</span>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">Exercício ${e(r.exercicio||'—')} · ${document.getElementById('papel').value}</div>
+    </div>
+  </div>`;
+
+  // 5 dimension cards
+  h+=`<div class="scores-grid">`;
+  DIMS.forEach(([k,code,name])=>{
+    const s=r.scores?.[k];
+    h+=`<div class="sc-card"><div class="sc-card-label">${code}</div><div class="sc-val ${sv(s?.valor||1)}">${s?.valor||'?'}</div><div class="sc-card-name">${name}</div></div>`;
+  });
+  h+=`</div>`;
+
+  // Detail
+  h+=`<div class="result-content">`;
+  h+=`<h2>📋 Resumo geral</h2><p>${e(r.resumo||'')}</p>`;
+
+  h+=`<h2>📊 Nota em cada dimensão</h2><table><thead><tr><th>Dimensão</th><th style="width:60px;text-align:center">Nota</th><th>Por quê essa nota?</th></tr></thead><tbody>`;
+  DIMS.forEach(([k,code,name])=>{
+    const s=r.scores?.[k];
+    h+=`<tr><td><strong style="color:var(--text)">${code} — ${name}</strong></td><td style="text-align:center"><span class="sc-val ${sv(s?.valor||1)}" style="font-size:1.1rem">${s?.valor||'?'}</span></td><td>${e(s?.justificativa||'')}</td></tr>`;
+  });
+  h+=`</tbody></table><p style="margin-top:10px;font-weight:600;">Nota final do exercício: ${(r.media||0).toFixed(1)} / 3.0</p>`;
+
+  h+=`<h2>🪤 Verificação de armadilhas intencionais</h2>`;
+  h+=`<p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Alguns exercícios têm "pegadinhas" propositais para testar a atenção do participante. Abaixo, se cada uma foi identificada ou não.</p>`;
+  if(!r.armadilhas?.length){h+=`<p>Nenhuma armadilha verificada neste exercício.</p>`;}
+  else{
+    h+=`<div class="chip-row">`+r.armadilhas.map(a=>`<span class="chip ${a.identificada?'chip-g':'chip-r'}">${a.identificada?'✓ Identificou':'✗ Não identificou'}: ${e(a.nome)}</span>`).join('')+`</div>`;
+    r.armadilhas.forEach(a=>{if(a.observacao)h+=`<p><strong>${e(a.nome)}:</strong> ${e(a.observacao)}</p>`;});
+  }
+
+  h+=`<h2>✅ O que o participante fez bem</h2><ul>`+(r.pontosFort||[]).map(p=>`<li>${e(p)}</li>`).join('')+`</ul>`;
+  h+=`<h2>🎯 O que precisa melhorar</h2><ul>`+(r.pontosMelh||[]).map(p=>`<li>${e(p)}</li>`).join('')+`</ul>`;
+
+  if(r.topicosReforco?.length){
+    h+=`<h2>📚 Módulos da trilha para revisitar</h2>`;
+    h+=`<p style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Com base nos gaps identificados, sugerimos revisar:</p>`;
+    h+=`<ul>`+r.topicosReforco.map(t=>`<li>${e(t)}</li>`).join('')+`</ul>`;
+  }
+  h+=`</div>`;
+  return h;
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+function e(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function setBanner(id,msg,type){const b=document.getElementById(id);b.textContent=msg;b.className='banner vis '+type;}
+function hideBanner(id){document.getElementById(id).classList.remove('vis');}
+
+function resetAll(){
+  Object.keys(ghData).forEach(k=>{ghData[k]=null;});
+  Object.keys(tabContent).forEach(k=>{delete tabContent[k];});
+  activeTab=null;
+  document.getElementById('taContent').value='';
+  document.getElementById('jsonInput').value='';
+  document.getElementById('contentTabs').innerHTML='';
+  document.getElementById('resultSec').classList.remove('vis');
+  document.getElementById('fileChecks').style.display='none';
+  ['11','12','13'].forEach(v=>{const el=document.getElementById('ex-sel-'+v);if(el)el.checked=false;});
+  hideBanner('ghBanner');hideBanner('exBanner');hideBanner('parseErr');
+  updateTokens();updateJsonTokens();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
