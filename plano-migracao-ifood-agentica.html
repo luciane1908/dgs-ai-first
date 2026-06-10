@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Engenharia de Software Agêntica · iFood · DB1</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --dark:    #0F1B2D;
+    --mid:     #132035;
+    --teal:    #00A89D;
+    --red:     #E84F33;
+    --blue:    #1A6FBF;
+    --purple:  #6D28D9;
+    --amber:   #F59E0B;
+    --light:   #F7F9FC;
+    --muted:   #8A9BB0;
+    --text:    #1E2D3D;
+    --card:    #FFFFFF;
+    --border:  #E2E8F0;
+    --slate:   #475569;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--light);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--dark);
+    border-bottom: 1px solid rgba(0,168,157,.25);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2.5rem;
+    height: 56px;
+  }
+  .nav-logo {
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: .95rem;
+    color: var(--teal);
+    letter-spacing: .05em;
+    text-transform: uppercase;
+  }
+  .nav-links {
+    display: flex;
+    gap: 1.75rem;
+    list-style: none;
+  }
+  .nav-links a {
+    font-size: .78rem;
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--teal); }
+
+  /* ── SECTIONS ── */
+  section { padding: 5rem 2.5rem; max-width: 1100px; margin: 0 auto; }
+  .section-eyebrow {
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: .75rem;
+  }
+  .section-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 2.5rem;
+    line-height: 1.2;
+  }
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* ── HERO ── */
+  #hero {
+    background: var(--dark);
+    max-width: 100%;
+    padding: 7rem 2.5rem 6rem;
+    position: relative;
+    overflow: hidden;
+  }
+  #hero::before {
+    content: '';
+    position: absolute;
+    top: -120px; right: -80px;
+    width: 480px; height: 480px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,168,157,.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  #hero::after {
+    content: '';
+    position: absolute;
+    bottom: -100px; right: 160px;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(232,79,51,.13) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-inner { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+  .hero-badge {
+    display: inline-block;
+    background: var(--teal);
+    color: #fff;
+    font-family: 'Sora', sans-serif;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    padding: .35rem .85rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+  }
+  .hero-title {
+    font-family: 'Sora', sans-serif;
+    font-size: clamp(2.4rem, 5vw, 3.8rem);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.1;
+    margin-bottom: 1.25rem;
+    max-width: 680px;
+  }
+  .hero-title span { color: var(--teal); }
+  .hero-sub {
+    font-size: 1rem;
+    color: var(--muted);
+    max-width: 520px;
+    margin-bottom: 2.5rem;
+    line-height: 1.7;
+  }
+  .hero-meta {
+    display: flex;
+    gap: 2.5rem;
+    flex-wrap: wrap;
+  }
+  .hero-meta-item { }
+  .hero-meta-item .label { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-bottom: .2rem; }
+  .hero-meta-item .value { font-size: .95rem; font-weight: 600; color: #fff; }
+
+  /* ── CARDS GRID ── */
+  .cards-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+  .cards-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+  @media (max-width: 780px) {
+    .cards-3, .cards-2 { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,.06);
+  }
+  .card-header {
+    padding: .8rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+  }
+  .card-icon {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px;
+    background: rgba(255,255,255,.2);
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .card-header-title {
+    font-family: 'Sora', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+    color: #fff;
+  }
+  .card-body { padding: 1.25rem; }
+  .card-body p {
+    font-size: .88rem;
+    color: var(--slate);
+    line-height: 1.65;
+  }
+
+  /* accent colors */
+  .accent-teal  .card-header { background: var(--teal); }
+  .accent-blue  .card-header { background: var(--blue); }
+  .accent-red   .card-header { background: var(--red); }
+  .accent-purple .card-header { background: var(--purple); }
+  .accent-amber .card-header { background: var(--amber); }
+
+  /* ── SQUAD CARDS ── */
+  .squad-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,.06);
+  }
+  .squad-header {
+    padding: .85rem 1.25rem;
+    font-family: 'Sora', sans-serif;
+    font-size: .9rem;
+    font-weight: 700;
+    color: #fff;
+  }
+  .squad-body { padding: 1.25rem 1.5rem; }
+  .squad-body ul { list-style: none; display: flex; flex-direction: column; gap: .55rem; }
+  .squad-body ul li {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    font-size: .88rem;
+    color: var(--text);
+  }
+  .squad-body ul li::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--teal);
+    flex-shrink: 0;
+  }
+  .squad-note {
+    padding: .65rem 1.25rem;
+    font-size: .78rem;
+    color: var(--red);
+    font-style: italic;
+    border-top: 1px solid var(--border);
+  }
+  .cobranca-bar {
+    margin-top: 2rem;
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    border-radius: 10px;
+    padding: .85rem 1.25rem;
+    font-size: .85rem;
+    color: var(--blue);
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+  }
+
+  /* ── PILARES (dark bg) ── */
+  #metodo { background: var(--dark); max-width: 100%; }
+  #metodo > .inner { max-width: 1100px; margin: 0 auto; padding: 5rem 2.5rem; }
+  #metodo .section-title { color: #fff; }
+  .pilar-card {
+    background: #192740;
+    border: 1px solid rgba(0,168,157,.3);
+    border-radius: 14px;
+    padding: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .pilar-icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    background: rgba(0,168,157,.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    color: var(--teal);
+  }
+  .pilar-card h3 {
+    font-family: 'Sora', sans-serif;
+    font-size: .95rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: .4rem;
+  }
+  .pilar-card p { font-size: .85rem; color: var(--muted); line-height: 1.6; }
+  .pilar-footnote {
+    text-align: center;
+    font-size: .8rem;
+    color: var(--muted);
+    font-style: italic;
+    margin-top: 2rem;
+  }
+
+  /* ── TIMELINE ── */
+  .timeline { display: flex; flex-direction: column; gap: 0; }
+  .timeline-item {
+    display: grid;
+    grid-template-columns: 160px 1px 1fr;
+    gap: 0 2rem;
+    min-height: 120px;
+  }
+  .timeline-date {
+    text-align: right;
+    padding-top: .15rem;
+    padding-bottom: 1.5rem;
+  }
+  .timeline-date .period {
+    font-family: 'Sora', sans-serif;
+    font-size: .85rem;
+    font-weight: 700;
+  }
+  .timeline-date .status {
+    font-size: .72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-top: .2rem;
+  }
+  .timeline-connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .timeline-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid;
+    flex-shrink: 0;
+    margin-top: .1rem;
+  }
+  .timeline-line {
+    width: 2px;
+    flex: 1;
+    background: var(--border);
+    min-height: 60px;
+  }
+  .timeline-item:last-child .timeline-line { display: none; }
+  .timeline-content {
+    padding-bottom: 2rem;
+  }
+  .timeline-content h3 {
+    font-family: 'Sora', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: .4rem;
+  }
+  .timeline-content p { font-size: .87rem; color: var(--slate); line-height: 1.65; }
+  .done-dot { background: var(--teal); border-color: var(--teal); }
+  .done-line { background: var(--teal) !important; }
+
+  /* ── PILOTO ── */
+  .piloto-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  @media (max-width: 700px) { .piloto-grid { grid-template-columns: 1fr; } }
+  .piloto-col-light {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 2rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,.06);
+  }
+  .piloto-col-dark {
+    background: var(--dark);
+    border: 1px solid rgba(0,168,157,.3);
+    border-radius: 14px;
+    padding: 2rem;
+  }
+  .piloto-col-light h3,
+  .piloto-col-dark h3 {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+  }
+  .piloto-col-light h3 { color: var(--text); }
+  .piloto-col-dark h3 { color: #fff; }
+  .piloto-col-light ul { list-style: none; display: flex; flex-direction: column; gap: .75rem; }
+  .piloto-col-light ul li {
+    display: flex; gap: .75rem; align-items: flex-start;
+    font-size: .88rem; color: var(--slate); line-height: 1.55;
+  }
+  .piloto-col-light ul li::before {
+    content: '→';
+    color: var(--teal);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: .05rem;
+  }
+  .step-item { display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1.2rem; }
+  .step-num {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--teal);
+    color: #fff;
+    font-family: 'Sora', sans-serif;
+    font-size: .85rem;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-item h4 { font-size: .9rem; font-weight: 700; color: #fff; margin-bottom: .2rem; }
+  .step-item p { font-size: .82rem; color: var(--muted); }
+
+  /* ── PRÓXIMOS PASSOS ── */
+  #proximos { background: var(--dark); max-width: 100%; }
+  #proximos > .inner { max-width: 1100px; margin: 0 auto; padding: 5rem 2.5rem; }
+  #proximos .section-title { color: #fff; }
+  .passo-card {
+    background: #192740;
+    border: 1px solid #2A3F5A;
+    border-radius: 14px;
+    padding: 1.75rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .passo-badge {
+    display: inline-block;
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: .3rem .75rem;
+    border-radius: 5px;
+    width: fit-content;
+  }
+  .passo-icon { font-size: 2rem; }
+  .passo-card h3 {
+    font-family: 'Sora', sans-serif;
+    font-size: .95rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: .2rem;
+  }
+  .passo-card p { font-size: .85rem; color: var(--muted); line-height: 1.6; }
+  .owner-tag {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .45rem .9rem;
+    border-radius: 7px;
+    font-size: .78rem;
+    font-weight: 600;
+    margin-top: auto;
+    width: fit-content;
+  }
+
+  /* ── FOOTER/CTA ── */
+  #cta {
+    background: var(--dark);
+    max-width: 100%;
+    padding: 6rem 2.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  #cta::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,168,157,.1) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  #cta h2 {
+    font-family: 'Sora', sans-serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+    position: relative;
+  }
+  #cta p { color: var(--muted); font-size: .95rem; margin-bottom: 2rem; position: relative; }
+  .cta-btn {
+    display: inline-block;
+    background: var(--teal);
+    color: #fff;
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: .95rem;
+    padding: .9rem 2.5rem;
+    border-radius: 10px;
+    text-decoration: none;
+    letter-spacing: .03em;
+    transition: opacity .2s, transform .2s;
+    position: relative;
+  }
+  .cta-btn:hover { opacity: .88; transform: translateY(-1px); }
+  .footer-note { color: var(--muted); font-size: .78rem; margin-top: 2.5rem; position: relative; }
+
+  /* ── UTILITY ── */
+  .tag {
+    display: inline-flex; align-items: center;
+    background: rgba(0,168,157,.12);
+    color: var(--teal);
+    border: 1px solid rgba(0,168,157,.3);
+    font-size: .72rem; font-weight: 600;
+    letter-spacing: .06em; text-transform: uppercase;
+    padding: .25rem .7rem; border-radius: 5px;
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-logo">DB1 · iFood</span>
+  <ul class="nav-links">
+    <li><a href="#sumario">Sumário</a></li>
+    <li><a href="#squads">Squads</a></li>
+    <li><a href="#metodo">Método</a></li>
+    <li><a href="#cronograma">Cronograma</a></li>
+    <li><a href="#piloto">Piloto</a></li>
+    <li><a href="#proximos">Próximos Passos</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div id="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">DB1 Global Software · Proposta Técnica 2026</div>
+    <h1 class="hero-title">Engenharia de<br><span>Software Agêntica</span></h1>
+    <p class="hero-sub">Plano de Migração do Modelo de Trabalho · iFood Pago<br>Squads PIX, Edge e Cloud</p>
+    <div class="hero-meta">
+      <div class="hero-meta-item">
+        <div class="label">Início do Piloto</div>
+        <div class="value">Junho · 2026</div>
+      </div>
+      <div class="hero-meta-item">
+        <div class="label">Primeiro Ciclo Completo</div>
+        <div class="value">Outubro · 2026</div>
+      </div>
+      <div class="hero-meta-item">
+        <div class="label">Modelo</div>
+        <div class="value">Transição Gradual</div>
+      </div>
+      <div class="hero-meta-item">
+        <div class="label">Novas Alocações</div>
+        <div class="value">Não necessárias</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SUMÁRIO EXECUTIVO -->
+<section id="sumario">
+  <p class="section-eyebrow">Sumário Executivo</p>
+  <h2 class="section-title">O que estamos propondo?</h2>
+  <div class="cards-3">
+    <div class="card accent-blue">
+      <div class="card-header">
+        <div class="card-icon">⇄</div>
+        <div class="card-header-title">Transição Estruturada</div>
+      </div>
+      <div class="card-body">
+        <p>Evolução gradual e sem rupturas do modelo atual de desenvolvimento para Engenharia de Software Agêntica, combinando a maturidade de mais de 25 anos da DB1 com o uso de agentes de IA de ponta a ponta no ciclo de entrega.</p>
+      </div>
+    </div>
+    <div class="card accent-teal">
+      <div class="card-header">
+        <div class="card-icon">📅</div>
+        <div class="card-header-title">Linha do Tempo</div>
+      </div>
+      <div class="card-body">
+        <p>Início do piloto em Junho/2026 com conclusão do primeiro ciclo completo em Outubro/2026. Todos os compromissos de entrega atuais serão preservados durante a transição.</p>
+      </div>
+    </div>
+    <div class="card accent-red">
+      <div class="card-header">
+        <div class="card-icon">🚀</div>
+        <div class="card-header-title">Kill Legacy como Piloto</div>
+      </div>
+      <div class="card-body">
+        <p>A migração de aplicação da estrutura Zoop para iFood — diretamente ligada à meta organizacional Kill Legacy — será o caso de uso inaugural do método Clóvis.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SQUADS -->
+<section id="squads">
+  <p class="section-eyebrow">Modelo Atual</p>
+  <h2 class="section-title">Composição das Squads e Modelo de Cobrança</h2>
+  <div class="cards-3">
+    <div class="squad-card">
+      <div class="squad-header" style="background: var(--blue);">PIX &amp; PIX Regulatório</div>
+      <div class="squad-body">
+        <ul>
+          <li>Tech Lead</li>
+          <li>Desenvolvedor Especialista</li>
+          <li>Desenvolvedor Sênior</li>
+          <li>Desenvolvedor Pleno</li>
+        </ul>
+      </div>
+    </div>
+    <div class="squad-card">
+      <div class="squad-header" style="background: var(--teal);">Edge</div>
+      <div class="squad-body">
+        <ul>
+          <li>Desenvolvedor Sênior</li>
+          <li>Desenvolvedor Pleno</li>
+        </ul>
+      </div>
+    </div>
+    <div class="squad-card">
+      <div class="squad-header" style="background: var(--purple);">Cloud</div>
+      <div class="squad-body">
+        <ul>
+          <li>DevOps Sênior</li>
+        </ul>
+      </div>
+      <div class="squad-note">* Para a equipe de Cloud o Clóvis não faz sentido nesse momento.</div>
+    </div>
+  </div>
+  <div class="cobranca-bar">
+    <span>💳</span>
+    <span>Modelo de cobrança vigente: <strong>valor fechado por perfil alocado</strong></span>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- MÉTODO CLÓVIS -->
+<div id="metodo">
+  <div class="inner">
+    <p class="section-eyebrow">O Método Clóvis</p>
+    <h2 class="section-title">Engenharia de Software Agêntica na prática</h2>
+    <div class="cards-2">
+      <div class="pilar-card">
+        <div class="pilar-icon">⚙️</div>
+        <div>
+          <h3>Estimativa Agêntica</h3>
+          <p>Planejamento e estimativa de demandas com auxílio do Clóvis, reduzindo tempo e aumentando a precisão das entregas.</p>
+        </div>
+      </div>
+      <div class="pilar-card">
+        <div class="pilar-icon">📈</div>
+        <div>
+          <h3>Checkpoints Semanais</h3>
+          <p>Acompanhamento contínuo com revisões semanais de progresso e ajuste de rota quando necessário.</p>
+        </div>
+      </div>
+      <div class="pilar-card">
+        <div class="pilar-icon">👥</div>
+        <div>
+          <h3>Sem Novas Alocações</h3>
+          <p>O método opera com os recursos existentes da DB1 ou do iFood, sem necessidade de novos headcounts ou contratações.</p>
+        </div>
+      </div>
+      <div class="pilar-card">
+        <div class="pilar-icon">⭐</div>
+        <div>
+          <h3>Kill Legacy como Meta</h3>
+          <p>Alinhado diretamente às metas organizacionais do iFood: migração Zoop → iFood como caso piloto inaugural.</p>
+        </div>
+      </div>
+    </div>
+    <p class="pilar-footnote">O Clóvis foi apresentado presencialmente aos Engineer Managers responsáveis pelas frentes em Maio/2026</p>
+  </div>
+</div>
+
+<!-- CRONOGRAMA -->
+<section id="cronograma">
+  <p class="section-eyebrow">Plano de Ação</p>
+  <h2 class="section-title">Cronograma de Transição Gradual</h2>
+  <div class="timeline">
+
+    <div class="timeline-item">
+      <div class="timeline-date">
+        <div class="period" style="color: var(--teal)">Mai/2026</div>
+        <div class="status" style="color: var(--teal)">✅ Concluído</div>
+      </div>
+      <div class="timeline-connector">
+        <div class="timeline-dot done-dot"></div>
+        <div class="timeline-line done-line"></div>
+      </div>
+      <div class="timeline-content">
+        <h3 style="color: var(--teal)">Apresentação</h3>
+        <p>Método Clóvis apresentado em agenda presencial para os Engineer Managers responsáveis pelas frentes PIX, Edge e Cloud.</p>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-date">
+        <div class="period" style="color: var(--blue)">Jun–Ago/2026</div>
+        <div class="status" style="color: var(--blue)">🔵 Em andamento</div>
+      </div>
+      <div class="timeline-connector">
+        <div class="timeline-dot" style="border-color: var(--blue)"></div>
+        <div class="timeline-line"></div>
+      </div>
+      <div class="timeline-content">
+        <h3 style="color: var(--blue)">Piloto</h3>
+        <p>Pilotar o método com uma aplicação pequena e de baixo impacto. Fazer planejamento de migração com estimativa usando o Clóvis e com checkpoints semanais de acompanhamento.</p>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-date">
+        <div class="period" style="color: var(--amber)">Set/2026</div>
+        <div class="status" style="color: var(--amber)">⏳ Planejado</div>
+      </div>
+      <div class="timeline-connector">
+        <div class="timeline-dot" style="border-color: var(--amber)"></div>
+        <div class="timeline-line"></div>
+      </div>
+      <div class="timeline-content">
+        <h3 style="color: var(--amber)">Review</h3>
+        <p>Agenda de review com o que deu certo e o que precisa ser melhorado no método para as próximas migrações. Retrospectiva completa do piloto.</p>
+      </div>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-date">
+        <div class="period" style="color: var(--red)">Out/2026</div>
+        <div class="status" style="color: var(--red)">⏳ Planejado</div>
+      </div>
+      <div class="timeline-connector">
+        <div class="timeline-dot" style="border-color: var(--red)"></div>
+        <div class="timeline-line"></div>
+      </div>
+      <div class="timeline-content">
+        <h3 style="color: var(--red)">Início do Ciclo</h3>
+        <p>Planejamento das demandas para MB2/2026 já com as migrações e metas de Kill Legacy planejadas utilizando o Clóvis. Primeiro ciclo completo de Engenharia Agêntica.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="cobranca-bar" style="margin-top: 2.5rem;">
+    <span>✅</span>
+    <span>Todos os compromissos de entrega atuais serão <strong>preservados durante a transição</strong></span>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- PILOTO -->
+<section id="piloto">
+  <p class="section-eyebrow">Projeto Piloto</p>
+  <h2 class="section-title">Migração Kill Legacy · Zoop → iFood</h2>
+  <div class="piloto-grid">
+    <div class="piloto-col-light">
+      <h3>Contexto</h3>
+      <ul>
+        <li>Alinhado à meta organizacional Kill Legacy do iFood</li>
+        <li>Migração de aplicação da estrutura Zoop para iFood</li>
+        <li>Aplicação de baixo impacto e pequeno porte para o piloto</li>
+        <li>Não requer novas alocações de pessoas</li>
+        <li>Pode usar recurso do iFood ou da DB1 com demanda do ciclo corrente</li>
+      </ul>
+    </div>
+    <div class="piloto-col-dark">
+      <h3>Como vai funcionar</h3>
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div>
+          <h4>Identificar a aplicação</h4>
+          <p>iFood indica qual app da estrutura Zoop será utilizada no piloto de migração.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div>
+          <h4>Estimativa com Clóvis</h4>
+          <p>DB1 realiza planejamento detalhado da migração utilizando o método agêntico.</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div>
+          <h4>Execução monitorada</h4>
+          <p>Início da migração com checkpoints semanais de progresso (Jun–Ago/2026).</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div>
+          <h4>Review &amp; Refinamento</h4>
+          <p>Retrospectiva e ajuste do método para os próximos ciclos de migração.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRÓXIMOS PASSOS -->
+<div id="proximos">
+  <div class="inner">
+    <p class="section-eyebrow">Próximos Passos</p>
+    <h2 class="section-title">O que precisamos para avançar?</h2>
+    <div class="cards-3">
+      <div class="passo-card">
+        <div class="passo-badge" style="background: rgba(232,79,51,.15); color: var(--red); border: 1px solid rgba(232,79,51,.3)">Passo 1</div>
+        <div class="passo-icon">🔍</div>
+        <div>
+          <h3>Identificar a Aplicação Piloto</h3>
+          <p>iFood indica qual aplicação da estrutura Zoop será utilizada no piloto de migração. Esta é a ação crítica para desbloquear o projeto.</p>
+        </div>
+        <div class="owner-tag" style="background: rgba(232,79,51,.15); color: var(--red); border: 1px solid rgba(232,79,51,.3)">👤 iFood</div>
+      </div>
+      <div class="passo-card">
+        <div class="passo-badge" style="background: rgba(0,168,157,.15); color: var(--teal); border: 1px solid rgba(0,168,157,.3)">Passo 2</div>
+        <div class="passo-icon">⚙️</div>
+        <div>
+          <h3>Estimativa e Planejamento</h3>
+          <p>DB1 realiza estimativa completa da migração utilizando o método Clóvis, gerando o plano de execução detalhado.</p>
+        </div>
+        <div class="owner-tag" style="background: rgba(0,168,157,.15); color: var(--teal); border: 1px solid rgba(0,168,157,.3)">👤 DB1</div>
+      </div>
+      <div class="passo-card">
+        <div class="passo-badge" style="background: rgba(26,111,191,.15); color: var(--blue); border: 1px solid rgba(26,111,191,.3)">Passo 3</div>
+        <div class="passo-icon">🧪</div>
+        <div>
+          <h3>Execução do Piloto</h3>
+          <p>Início da migração com checkpoints semanais de acompanhamento conjunto entre DB1 e iFood (Jun–Ago/2026).</p>
+        </div>
+        <div class="owner-tag" style="background: rgba(26,111,191,.15); color: var(--blue); border: 1px solid rgba(26,111,191,.3)">👤 DB1 + iFood</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div id="cta">
+  <h2>Vamos juntos construir<br>o futuro do desenvolvimento?</h2>
+  <p>DB1 Global Software · iFood Pago · 2026</p>
+  <a href="#proximos" class="cta-btn">Identifique a aplicação piloto →</a>
+  <p class="footer-note">db1.com.br</p>
+</div>
+
+</body>
+</html>
